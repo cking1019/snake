@@ -17,8 +17,6 @@ include_directories(
 
 # 设置程序图标
 set(icon ${CMAKE_BINARY_DIR}/static/favicon.rc)
-# 设置程序名称
-set(app_name app)
 
 # 所有源文件
 file(GLOB SRC 
@@ -29,5 +27,5 @@ file(GLOB SRC
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 # 生成可执行文件
-add_executable(${app_name} ${SRC} ${icon})
-target_link_libraries(${app_name} easyx winmm)
+add_executable(${PROJECT_NAME} ${SRC} ${icon})
+target_link_libraries(${PROJECT_NAME} easyx winmm)
