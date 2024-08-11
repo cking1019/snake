@@ -3,31 +3,88 @@
 Game::Game() {
     // 随机种子初始化
     srand(time(0));
-    // 窗口宽和高
-    width = 500;
-    height = 500;
-
-    // 网格大小
-    unit = 20;
-    
+    // 窗口宽、高和网格大小
+    this->window = Window(500, 500, 20);
     // 得分
-    grade = 0;
-    
+    this->grade = 0;
     // 游戏运行状态
-    is_running = false;
+    this->state = STOP;
     
     // 游戏帧率
-    frame = 10;
+    this->frame = 10;
 
-    //初始化贪吃蛇
-    snake = Snake();
+    // 初始化贪吃蛇
+    this->snake = new Snake();
     // 初始化食物位置
-    food = Food();
+    this->food = new Food();
+    // 设置图片
+    this->setImgs();
 }
 
-// 加载图片
-void Game::load_image()
+// 生成食物
+void Game::produce_food() {
+    while (true)
+    {
+        this->food->x = rand() % (24 + 1);
+        this->food->y = rand() % (24 + 1);
+        bool is_ok = true;
+        for(auto &e: snake->getBody()) {
+            // 如果食物与蛇身相撞，那么重新生成随机食物
+            if(*this->food == e) {
+                is_ok = false;
+                break;
+            }
+        }
+        if(is_ok) break;
+    }
+    std::cout << "The Food Position is: (" << this->food->x << ", " << this->food->y << ")\n";
+}
+
+// 主逻辑运行
+void Game::run()
 {
+    this->snake->move();
+    auto flag = this->snake->eat_food(this->food);
+    if(flag) {
+        produce_food();
+        this->setGrade(this->getGrade() + 25);
+    }
+}
+
+void Game::setState(State s) {
+    this->state = s;
+}
+
+State Game::getState() {
+    return this->state;
+}
+
+void Game::setGrade(int grade) {
+    this->grade =grade;
+}
+
+int Game::getGrade() {
+    return this->grade;
+}
+
+void Game::setWindow(struct Window w) {
+    this->window = w;
+}
+
+Window Game::getWindow() {
+    return this->window;
+}
+
+void Game::setFrame(int frame) {
+    this->frame = frame;
+}
+
+int Game::getFrame() {
+    return this->frame;
+}
+
+void Game::setImgs() {
+    IMAGE up_img, dw_img, lf_img, rt_img, bd_img, fd_img, bg_img;
     loadimage(&bg_img, (LPCTSTR)"static/imgs/bg.png");
     loadimage(&bd_img, (LPCTSTR)"static/imgs/bd.png");
     loadimage(&lf_img, (LPCTSTR)"static/imgs/lf.png");
@@ -35,34 +92,15 @@ void Game::load_image()
     loadimage(&up_img, (LPCTSTR)"static/imgs/up.png");
     loadimage(&dw_img, (LPCTSTR)"static/imgs/dw.png");
     loadimage(&fd_img, (LPCTSTR)"static/imgs/fd.png");
+    this->imgs["bg_img"] = bg_img;
+    this->imgs["bd_img"] = bd_img;
+    this->imgs["lf_img"] = lf_img;
+    this->imgs["rt_img"] = rt_img;
+    this->imgs["up_img"] = up_img;
+    this->imgs["dw_img"] = dw_img;
+    this->imgs["fd_img"] = fd_img;
 }
 
-// 生成食物
-void Game::produce_food() {
-    // 将食物设置到正确的位置
-    while (true)
-    {
-        food.x = rand() % (24 + 1);
-        food.y = rand() % (24 + 1);
-        bool is_ok = true;
-        for(auto &e: snake.body) {
-            if(food == e) {
-                is_ok = false;
-                break;
-            }
-        }
-        if(is_ok) break;
-    }
-    std::cout << "The Food Position is: (" << food.x << ", " << food.y << ")\n";
-}
-
-// 主逻辑运行
-void Game::run()
-{
-    snake.move();
-    auto flag = snake.eat_food(food);
-    if(flag) {
-        produce_food();
-        grade += 25;
-    }
+std::map<std::string, IMAGE> Game::getImgs() {
+    return this->imgs;
 }

@@ -1,21 +1,33 @@
 #pragma once
 
-#include <food.h>
 #include <vector>
-#include <graphics.h>
-#include <body.h>
-#include <head.h>
+#include "easyx/graphics.h"
+#include "food.h"
+#include "head.h"
 
 class Snake
 {
-public:
+private:
     Head head;
-    std::vector<Body> body;
-
+    std::vector<Node> body;
     char dir;
     int speed;
-    
+public:
     Snake();
+    ~Snake();
     void move();
-    bool eat_food(Food& food);
+    bool eat_food(Food*& food);
+
+    void setHead(Head head);
+    Head getHead();
+
+    void setBody(std::vector<Node>& body);
+    std::vector<Node> getBody();
+
+    void setDir(char dir);
+    char getDir();
+
+    void setSpeed(int s);
+    int getSpeed();
+
 };

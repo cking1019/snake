@@ -1,6 +1,9 @@
-#include <node.h>
+#pragma once
 
-class Head: public Node {
+#include "node.h"
+
+class Head: public Node 
+{
 public:
     Head();
     Head(int xx, int yy);
