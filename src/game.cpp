@@ -9,14 +9,8 @@ Game::Game() {
     this->grade = 0;
     // 游戏运行状态
     this->state = STOP;
-    
     // 游戏帧率
     this->frame = 10;
-
-    // 初始化贪吃蛇
-    this->snake = new Snake();
-    // 初始化食物位置
-    this->food = new Food();
     // 设置图片
     this->setImgs();
 }

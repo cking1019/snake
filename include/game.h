@@ -36,6 +36,20 @@ public:
     void controller();
     void draw();
 
+    void setSnake(Snake* s) {
+        this->snake = s;
+    }
+    Snake* getSnake() {
+        return this->snake;
+    }
+
+    void setFood(Food* f) {
+        this->food = f;
+    }
+    Food* getFood() {
+        return this->food;
+    }
+
     void setState(State s);
     State getState();
 

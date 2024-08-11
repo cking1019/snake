@@ -7,6 +7,11 @@ Snake::Snake() {
     this->dir = 'R';
 }
 
+Snake::Snake(std::string name) : Snake() {
+    this->name = name;
+    std::cout << "set the name of snake is " << name << std::endl;
+}
+
 Snake::~Snake() {
 
 }

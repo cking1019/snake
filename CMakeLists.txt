@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.27)
 
 project(snake)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
+set(CMAKE_BUILD_TYPE Debug)
 # 将静态资源复制到构建目录, CMAKE_SOURCE_DIR指向工程顶层目录，CMAKE_BINARY_DIR指向编译输出层目录
 file(COPY ${CMAKE_SOURCE_DIR}/static DESTINATION ${CMAKE_BINARY_DIR})
 
