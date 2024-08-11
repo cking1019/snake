@@ -1,13 +1,15 @@
 #include <thread>
 #include <game.h>
+#include <Windows.h>
 
-void run() {
+int main(int argc, char* args[])
+{
     auto game = new Game();
-    game->load_image();
     // 播放背景音乐。第一个参数的格式为 "open 文件路径 alias 别名"
     mciSendString(_T("open static/music.mp3 alias bg_music"), NULL, 0, NULL);
     mciSendString(_T("play bg_music repeat"), NULL, 0, NULL);
-    initgraph(game->width, game->height);
+    initgraph(game->getWindow().width, game->getWindow().height);
+    
     BeginBatchDraw();
     
     std::thread th1([game](){game->controller();});
@@ -17,15 +19,11 @@ void run() {
 
     while (true)
     {
-        while (game->is_running) {
+        while (game->getState() == BEGIN) {
             game->run();
-            Sleep(1000 / game->frame);
+            Sleep(1000 / game->getFrame());
         }
     }
-}
-
-int main(int argc, char* args[])
-{
-    run();
+    mciSendString(_T("close bg_music"), NULL, 0, NULL);
     return 0;
 }

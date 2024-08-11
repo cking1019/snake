@@ -1,6 +1,5 @@
 #include <game.h>
 
-
 // 指令处理，使用一个独立的线程操作
 void Game::controller()
 {
@@ -10,47 +9,45 @@ void Game::controller()
         while(peekmessage(&msg, EM_KEY)) {
             if(msg.message == WM_KEYDOWN) {
                 auto key = msg.vkcode;
-                auto dir = snake.dir;
-                auto speed = snake.speed;
+                auto dir = this->snake->getDir();
                 if(dir == 'L' && key == VK_RIGHT) continue;
                 if(dir == 'U' && key == VK_DOWN)  continue;
                 if(dir == 'R' && key == VK_LEFT)  continue;
                 if(dir == 'D' && key == VK_UP)    continue;
-                if(!is_running) {
-                    if(key == VK_RIGHT || key == VK_DOWN|| key == VK_LEFT|| key == VK_UP)
-                        continue;
-                }
                 switch(key) {
                     case VK_UP:
-                        snake.dir ='U';
+                        this->snake->setDir('U');
                         break;
                     case VK_DOWN:
-                        snake.dir ='D';
+                        this->snake->setDir('D');
                         break;
                     case VK_LEFT:
-                        snake.dir ='L';
+                        this->snake->setDir('L');
                         break;
                     case VK_RIGHT:
-                        snake.dir ='R';
+                        this->snake->setDir('R');
                         break;
                     case VK_F1:
-                        if(frame < 100) {
-                            frame++;
+                        if(this->frame < 100) {
+                            this->frame += 1;
                             std::cout << "speed up\n";
                         }
                         break;
                     case VK_F2:
-                        if(frame > 1) {
-                            frame--;
+                        if(this->frame > 1) {
+                            this->frame -= 1;
                             std::cout << "speed dw\n";
                         }
                         break;
                     case VK_SPACE: 
-                        is_running = !is_running;
-                        if(!is_running) {
-                            std::cout << "pause\n";
-                        } else{
-                            std::cout << "begin\n";
+                        if(this->state == STOP) {
+                            this->state = BEGIN;
+                            mciSendString(_T("resume bg_music"), NULL, 0, NULL);
+                            std::cout << "BEGIN\n";
+                        } else if(this->state == BEGIN) {
+                            this->state = STOP;
+                            mciSendString(_T("pause bg_music"), NULL, 0, NULL);
+                            std::cout << "STOP\n";
                         }
                         break;
                     case VK_ESCAPE:

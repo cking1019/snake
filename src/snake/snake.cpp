@@ -1,21 +1,56 @@
 #include <snake.h>
-#include <game.h>
 
 Snake::Snake() {
-    head = Head(7, 3);
-    body = {Body(5, 3), Body(6, 3)};
-    speed = 1;
-    dir = 'R';
+    this->head = Head(7, 3);
+    this->body = {Node(5, 3), Node(6, 3)};
+    this->speed = 1;
+    this->dir = 'R';
 }
 
-bool Snake::eat_food(Food& food) {
-    if(head == food) {
+Snake::~Snake() {
+
+}
+
+void Snake::setHead(Head h) {
+    this->head = h;
+}
+
+Head Snake::getHead() {
+    return this->head;
+}
+
+void Snake::setBody(std::vector<Node>& body) {
+    this->body = body;
+}
+
+std::vector<Node> Snake::getBody() {
+    return this->body;
+}
+
+void Snake::setDir(char dir) {
+    this->dir = dir;
+}
+
+char Snake::getDir() {
+    return this->dir;
+}
+
+void Snake::setSpeed(int s) {
+    this->speed = s;
+}
+
+int Snake::getSpeed() {
+    return this->speed;
+}
+
+bool Snake::eat_food(Food*& food) {
+    if(head.x == food->x && head.y == food->y) {
         mciSendString(_T("close food_music"), NULL, 0, NULL); // 关闭音乐
         mciSendString(_T("open static/music-food.mp3 alias food_music"), NULL, 0, NULL);
         mciSendString(_T("play food_music"), NULL, 0, NULL);
-        int x = food.x;
-        int y = food.y;
-        body.insert(body.begin(), Body(x, y));
+        int x = food->x;
+        int y = food->y;
+        this->body.insert(this->body.begin(), Node(x, y));
         return true;
     }
     return false;
@@ -24,26 +59,26 @@ bool Snake::eat_food(Food& food) {
 
 void Snake::move() {
     for(int i = body.size() - 1; i > 0; i--) {
-        body[i] = body[i - 1];
+        this->body[i] = this->body[i - 1];
     }
-    body[0].x = head.x;
-    body[0].y = head.y;
+    this->body[0].x = this->head.x;
+    this->body[0].y = this->head.y;
     switch(dir) {
         case 'U': 
-            head.y -= speed;
+            this->head.y -= this->speed;
             break;
         case 'D': 
-            head.y += speed;
+            this->head.y += this->speed;
             break;
         case 'L':
-            head.x -= speed; 
+            this->head.x -= this->speed; 
             break;
         case 'R':
-            head.x += speed;
+            this->head.x += this->speed;
             break;
     }
-    if(head.x < 0) head.x = 24;
-    if(head.x > 24) head.x = 0;
-    if(head.y < 0) head.y = 24;
-    if(head.y > 24) head.y = 0;
+    if(this->head.x < 0) this->head.x = 24;
+    if(this->head.x > 24) this->head.x = 0;
+    if(this->head.y < 0) this->head.y = 24;
+    if(this->head.y > 24) this->head.y = 0;
 }
