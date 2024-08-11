@@ -8,12 +8,14 @@
 class Snake
 {
 private:
+    std::string name;
     Head head;
     std::vector<Node> body;
     char dir;
     int speed;
 public:
     Snake();
+    Snake(std::string name);
     ~Snake();
     void move();
     bool eat_food(Food*& food);
@@ -29,5 +31,12 @@ public:
 
     void setSpeed(int s);
     int getSpeed();
+
+    void setName(std::string name) {
+        this->name = name;
+    }
+    std::string getName() {
+        return this->name;
+    }
 
 };

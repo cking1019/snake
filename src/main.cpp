@@ -5,6 +5,8 @@
 int main(int argc, char* args[])
 {
     auto game = new Game();
+    game->setSnake(new Snake("Demo"));
+    game->setFood(new Food());
     // 播放背景音乐。第一个参数的格式为 "open 文件路径 alias 别名"
     mciSendString(_T("open static/music.mp3 alias bg_music"), NULL, 0, NULL);
     mciSendString(_T("play bg_music repeat"), NULL, 0, NULL);
