@@ -8,7 +8,9 @@
 
 enum State {
     BEGIN,
-    STOP
+    STOP,
+    IS_RUNNING,
+    EXIT
 };
 
 struct Window {
