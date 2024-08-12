@@ -51,7 +51,7 @@ void Game::controller()
                         }
                         break;
                     case VK_ESCAPE:
-                        exit(0);
+                        this->state = EXIT;
                     default:
                         break;
                 }
