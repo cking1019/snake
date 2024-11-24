@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <windows.h>
+#include <iostream>
+
 #include "easyx/Graphics.hpp"
 #include "Model.hpp"
 

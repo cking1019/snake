@@ -12,21 +12,19 @@ Game::Game() {
     // 游戏帧率
     m_frame = 10;
     // 设置图片
-    IMAGE up_img, dw_img, lf_img, rt_img, bd_img, fd_img, bg_img;
-    loadimage(&bg_img, (LPCTSTR)"static/imgs/bg.png");
-    loadimage(&bd_img, (LPCTSTR)"static/imgs/bd.png");
-    loadimage(&lf_img, (LPCTSTR)"static/imgs/lf.png");
-    loadimage(&rt_img, (LPCTSTR)"static/imgs/rt.png");
-    loadimage(&up_img, (LPCTSTR)"static/imgs/up.png");
-    loadimage(&dw_img, (LPCTSTR)"static/imgs/dw.png");
-    loadimage(&fd_img, (LPCTSTR)"static/imgs/fd.png");
-    m_imgs["bg_img"] = bg_img;
-    m_imgs["bd_img"] = bd_img;
-    m_imgs["lf_img"] = lf_img;
-    m_imgs["rt_img"] = rt_img;
-    m_imgs["up_img"] = up_img;
-    m_imgs["dw_img"] = dw_img;
-    m_imgs["fd_img"] = fd_img;
+    loadimage(&m_imgs["bg_img"], (LPCTSTR)"static/imgs/bg.png");
+    loadimage(&m_imgs["bd_img"], (LPCTSTR)"static/imgs/bd.png");
+    loadimage(&m_imgs["lf_img"], (LPCTSTR)"static/imgs/lf.png");
+    loadimage(&m_imgs["rt_img"], (LPCTSTR)"static/imgs/rt.png");
+    loadimage(&m_imgs["up_img"], (LPCTSTR)"static/imgs/up.png");
+    loadimage(&m_imgs["dw_img"], (LPCTSTR)"static/imgs/dw.png");
+    loadimage(&m_imgs["fd_img"], (LPCTSTR)"static/imgs/fd.png");
+    // 播放背景音乐。第一个参数的格式为 "open 文件路径 alias 别名"
+    mciSendString(_T("open static/music.mp3 alias bg_music"), NULL, 0, NULL);
+    mciSendString(_T("play bg_music repeat"), NULL, 0, NULL);
+
+    m_snake = new Snake(); 
+    m_food = new Food();
 }
 
 // 逻辑处理
@@ -34,61 +32,66 @@ void Game::controller() {
     while (true) {
         ExMessage msg;
         while(peekmessage(&msg, EM_KEY)) {
-            if(msg.message == WM_KEYDOWN) {
-                auto key = msg.vkcode;
-                auto dir = m_snake->m_dir;
-                if(dir == 'L' && key == VK_RIGHT) continue;
-                if(dir == 'U' && key == VK_DOWN)  continue;
-                if(dir == 'R' && key == VK_LEFT)  continue;
-                if(dir == 'D' && key == VK_UP)    continue;
-                switch(key) {
-                case VK_UP:
+            if(msg.message != WM_KEYDOWN) continue;
+
+            auto key = msg.vkcode;
+            // 如果游戏状态停止，并且按键不为空格，那么继续等待下一个按键
+            if(m_state == STOP && key != VK_SPACE) continue;
+            
+            switch(key) {
+            case VK_UP:
+                if(m_snake->m_dir != 'D') {
                     m_snake->m_dir = 'U'; break;
-                case VK_DOWN:
+                };
+            case VK_DOWN:
+                if(m_snake->m_dir != 'U') {
                     m_snake->m_dir = 'D'; break;
-                case VK_LEFT:
-                    m_snake->m_dir = 'L'; break;
-                case VK_RIGHT:
-                    m_snake->m_dir = 'R'; break;
-                case VK_F1:
-                    if(m_frame < 100) {
-                        m_frame += 1;
-                        std::cout << "speed up\n";
-                    }
-                    break;
-                case VK_F2:
-                    if(m_frame > 1) {
-                        m_frame -= 1;
-                        std::cout << "speed dw\n";
-                    }
-                    break;
-                case VK_SPACE: 
-                    if(m_state == STOP) {
-                        m_state = BEGIN;
-                        mciSendString(_T("resume bg_music"), NULL, 0, NULL);
-                        std::cout << "BEGIN\n";
-                    } else if(m_state == BEGIN) {
-                        m_state = STOP;
-                        mciSendString(_T("pause bg_music"), NULL, 0, NULL);
-                        std::cout << "STOP\n";
-                    }
-                    break;
-                case VK_ESCAPE:
-                    m_state = EXIT; break;
-                default: break;
                 }
+            case VK_LEFT:
+                if(m_snake->m_dir != 'R') {
+                    m_snake->m_dir = 'L'; break;
+                }
+            case VK_RIGHT:
+                if(m_snake->m_dir != 'L') {
+                    m_snake->m_dir = 'R'; break;
+                }
+            case VK_F1:
+                if(m_frame < 100) {
+                    m_frame += 1;
+                    std::cout << "speed up\n";
+                }
+                break;
+            case VK_F2:
+                if(m_frame > 1) {
+                    m_frame -= 1;
+                    std::cout << "speed dw\n";
+                }
+                break;
+            case VK_SPACE: 
+                if(m_state == STOP) {
+                    m_state = BEGIN;
+                    mciSendString(_T("resume bg_music"), NULL, 0, NULL);
+                    std::cout << "BEGIN\n";
+                } else if(m_state == BEGIN) {
+                    m_state = STOP;
+                    mciSendString(_T("pause bg_music"), NULL, 0, NULL);
+                    std::cout << "STOP\n";
+                }
+                break;
+            case VK_ESCAPE:
+                m_state = EXIT; exit(0);
+            default: break;
             }
         }
         flushmessage();
-        Sleep(30);
+        Sleep(10);
     }
 }
 
 // 界面渲染
 void Game::draw()
 {
-    while (true)
-    {
+    while (true) {
         cleardevice();
         // 描绘背景
         putimage(0, 0, &m_imgs["bg_img"]);
@@ -125,8 +128,8 @@ void Game::draw()
         setbkmode(TRANSPARENT);
         settextstyle(20, 0, (LPCTSTR)"times new roman");
 
-        std::string s = "grade: " + std::to_string(m_grade);
-        outtextxy(m_win.width - 80, 0, (LPTSTR)s.c_str());
+        std::string s1 = "grade: " + std::to_string(m_grade);
+        outtextxy(m_win.width - 80, 0, (LPTSTR)s1.c_str());
 
         std::string s2 = "speed: " + std::to_string(m_frame);
         outtextxy(m_win.width - 80 , 20, (LPTSTR)s2.c_str());
@@ -141,25 +144,27 @@ void Game::produce_food() {
     while (true) {
         m_food->nd.x = rand() % (24 + 1);
         m_food->nd.y = rand() % (24 + 1);
-        bool is_ok = true;
+        bool isOK = false;
         for(auto &e: m_snake->m_body) {
             // 如果食物与蛇身相撞，那么重新生成随机食物
-            if(m_food->nd == e) {
-                is_ok = false;
-                break;
-            }
+            if(m_food->nd == e) continue;
+            isOK = true;
+            break;
         }
-        if(is_ok) break;
+        if(isOK) break;
     }
     std::cout << "The Food Position is: (" << m_food->nd.x << ", " << m_food->nd.y << ")\n";
 }
 
 // 主逻辑运行
 void Game::run() {
-    m_snake->move();
-    bool flag = m_snake->eat_food(m_food);
-    if(flag) {
-        produce_food();
-        m_grade += 25;
+    while(m_state == BEGIN) {
+        m_snake->move();
+        bool flag = m_snake->eat_food(m_food);
+        if(flag) {
+            produce_food();
+            m_grade += 25;
+        }
+        Sleep(1000 / m_frame);
     }
 }

@@ -1,6 +1,4 @@
 #pragma once
-#include <ctime>
-#include <iostream>
 
 enum State {
     BEGIN,
@@ -28,6 +26,10 @@ struct Node
     }
     const bool operator==(const Node& p) {
         return x == p.x && y == p.y;
+    }
+    
+    const bool operator!=(const Node& p) {
+        return x != p.x || y != p.y;
     }
 };
 
