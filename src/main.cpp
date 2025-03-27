@@ -1,4 +1,3 @@
-#include "Snake.hpp"
 #include "Game.hpp"
 
 #include "easyx/Graphics.hpp"
@@ -11,15 +10,12 @@ int main(int argc, char* args[])
     initgraph(game->m_win.width, game->m_win.height);
     BeginBatchDraw();
     
-    std::thread th1([=](){game->controller();});
-    std::thread th2([=](){game->draw();});
-    th1.detach();
-    th2.detach();
-
-    while (true)
-    {
-        game->run();
-        Sleep(100);
-    }
+    std::thread th1([=]{game->controller();});
+    std::thread th2([=]{game->draw();});
+    std::thread th3([=]{game->run();});
+    th1.join();
+    th2.join();
+    th3.join();
+    
     return 0;
 }

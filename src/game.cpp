@@ -8,7 +8,7 @@ Game::Game() {
     // 得分
     m_grade = 0;
     // 游戏运行状态
-    m_state = STOP;
+    m_gameState = STOP;
     // 游戏帧率
     m_frame = 10;
     // 设置图片
@@ -25,6 +25,13 @@ Game::Game() {
 
     m_snake = new Snake(); 
     m_food = new Food();
+
+    m_snake->m_name = "Demo";
+    m_snake->m_head = Head();
+    m_snake->m_head.nd = Node(7, 3);
+    m_snake->m_body = {Node(5, 3), Node(6, 3)};
+    m_snake->m_speed = 1;
+    m_snake->m_dir = 'R';
 }
 
 // 逻辑处理
@@ -36,7 +43,7 @@ void Game::controller() {
 
             auto key = msg.vkcode;
             // 如果游戏状态停止，并且按键不为空格，那么继续等待下一个按键
-            if(m_state == STOP && key != VK_SPACE) continue;
+            if(m_gameState == STOP && key != VK_SPACE) continue;
             
             switch(key) {
             case VK_UP:
@@ -68,23 +75,23 @@ void Game::controller() {
                 }
                 break;
             case VK_SPACE: 
-                if(m_state == STOP) {
-                    m_state = BEGIN;
+                if(m_gameState == STOP) {
+                    m_gameState = BEGIN;
                     mciSendString(_T("resume bg_music"), NULL, 0, NULL);
                     std::cout << "BEGIN\n";
-                } else if(m_state == BEGIN) {
-                    m_state = STOP;
+                } else if(m_gameState == BEGIN) {
+                    m_gameState = STOP;
                     mciSendString(_T("pause bg_music"), NULL, 0, NULL);
                     std::cout << "STOP\n";
                 }
                 break;
             case VK_ESCAPE:
-                m_state = EXIT; exit(0);
+                m_gameState = EXIT; exit(0);
             default: break;
             }
         }
         flushmessage();
-        Sleep(10);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
 
@@ -109,21 +116,17 @@ void Game::draw()
         int hd_x = hd.nd.x * m_win.unit;
         int hd_y = hd.nd.y * m_win.unit;
         switch (m_snake->m_dir) {
-        case 'U':
-            putimage(hd_x, hd_y, &m_imgs["up_img"]); break;
-        case 'D':
-            putimage(hd_x, hd_y, &m_imgs["dw_img"]); break;
-        case 'L':
-            putimage(hd_x, hd_y, &m_imgs["lf_img"]); break;
-        case 'R':
-            putimage(hd_x, hd_y, &m_imgs["rt_img"]); break;
+        case 'U': putimage(hd_x, hd_y, &m_imgs["up_img"]); break;
+        case 'D': putimage(hd_x, hd_y, &m_imgs["dw_img"]); break;
+        case 'L': putimage(hd_x, hd_y, &m_imgs["lf_img"]); break;
+        case 'R': putimage(hd_x, hd_y, &m_imgs["rt_img"]); break;
         default: break;
         }
 
         // 描绘食物
-        int fd_x = m_food->nd.x * m_win.unit;
-        int fd_y = m_food->nd.y * m_win.unit;
-        putimage(fd_x, fd_y, &m_imgs["fd_img"]);
+        int fdX = m_food->nd.x * m_win.unit;
+        int fdY = m_food->nd.y * m_win.unit;
+        putimage(fdX, fdY, &m_imgs["fd_img"]);
 
         setbkmode(TRANSPARENT);
         settextstyle(20, 0, (LPCTSTR)"times new roman");
@@ -135,36 +138,50 @@ void Game::draw()
         outtextxy(m_win.width - 80 , 20, (LPTSTR)s2.c_str());
 
         FlushBatchDraw();
-        Sleep(10);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-}
-
-// 生成食物
-void Game::produce_food() {
-    while (true) {
-        m_food->nd.x = rand() % (24 + 1);
-        m_food->nd.y = rand() % (24 + 1);
-        bool isOK = false;
-        for(auto &e: m_snake->m_body) {
-            // 如果食物与蛇身相撞，那么重新生成随机食物
-            if(m_food->nd == e) continue;
-            isOK = true;
-            break;
-        }
-        if(isOK) break;
-    }
-    std::cout << "The Food Position is: (" << m_food->nd.x << ", " << m_food->nd.y << ")\n";
 }
 
 // 主逻辑运行
 void Game::run() {
-    while(m_state == BEGIN) {
-        m_snake->move();
-        bool flag = m_snake->eat_food(m_food);
-        if(flag) {
-            produce_food();
-            m_grade += 25;
+    while(true) {
+        while(m_gameState == BEGIN) {
+            // 移动
+            int numNd = m_snake->m_body.size() - 1;
+            for(int i = numNd; i > 0; i--) m_snake->m_body[i] = m_snake->m_body[i - 1];
+            m_snake->m_body[0] = m_snake->m_head.nd;
+            switch(m_snake->m_dir) {
+            case 'U': m_snake->m_head.nd.y -= m_snake->m_speed; break;
+            case 'D': m_snake->m_head.nd.y += m_snake->m_speed; break;
+            case 'L': m_snake->m_head.nd.x -= m_snake->m_speed; break;
+            case 'R': m_snake->m_head.nd.x += m_snake->m_speed; break;
+            }
+            if(m_snake->m_head.nd.x < 0)  m_snake->m_head.nd.x = 24;
+            if(m_snake->m_head.nd.x > 24) m_snake->m_head.nd.x = 0;
+            if(m_snake->m_head.nd.y < 0)  m_snake->m_head.nd.y = 24;
+            if(m_snake->m_head.nd.y > 24) m_snake->m_head.nd.y = 0;
+            // 吃食物
+            if(m_snake->m_head.nd == m_food->nd) {
+                mciSendString(_T("close food_music"), NULL, 0, NULL); // 关闭音乐
+                mciSendString(_T("open static/music-food.mp3 alias food_music"), NULL, 0, NULL);
+                mciSendString(_T("play food_music"), NULL, 0, NULL);
+                m_snake->m_body.insert(m_snake->m_body.begin(), m_food->nd);
+                while (true) {
+                    m_food->nd.x = rand() % (24 + 1);
+                    m_food->nd.y = rand() % (24 + 1);
+                    bool isOK = true;
+                    for(auto &e: m_snake->m_body) {
+                        // 如果食物与蛇身相撞，那么重新生成随机食物
+                        if(m_food->nd == e) isOK = false;
+                    }
+                    if(isOK) break;
+                }
+                std::cout << "The Food Position is: (" << m_food->nd.x << ", " << m_food->nd.y << ")" << std::endl;
+                m_grade += 25;
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000 / m_frame));
         }
-        Sleep(1000 / m_frame);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }
